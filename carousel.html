@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<style>
+			*{padding: 0;margin: 0;}
+			body{width: 980px;margin: 0 auto;text-align: center;}
+			.carousel{width: 100%;overflow: hidden;position: relative;left:0;top:0;}
+			.carousel-box{width: 40000px;}
+			.carousel-box-ul{transition: all 0.6s;width: 100%;}
+			.carousel-box-ul li{float: left;list-style: none;}
+			.carousel-box-ul li img{width:980px;}
+			
+			.carousel-item-count{position: absolute;left: 0;right:0;bottom:10px;width: 300px;height:30px;margin-left:-150px;margin: 0 auto;text-align: center;}
+			.carousel-item-count li{display: inline-block;padding: 0 5px;margin:0 3px;border: 1px solid #ccc;background: #fff;border-radius: 50%;}
+			.carousel-item-count li:hover{cursor: pointer;}
+			.carousel-item-count li.active{background: firebrick;color: #fff;}
+			
+			.carousel-item-click{position: absolute;top: 46%;font-size: 16px;height:30px;line-height: 30px;width: 100%;}
+			.carousel-item-click a.carousel-item-click-left{float:left;margin-left:50px;background: #fff;padding: 0 10px;}
+			.carousel-item-click a.carousel-item-click-right{float:right;margin-right:50px;background: #fff;padding: 0 10px;}
+			.carousel-item-click a:hover{cursor: pointer;}
+		</style>
+	</head>
+	<body>
+		<div id="app">
+			<carousel width="900">
+				<carousel-item>
+					<img src="images/flash1.jpg" />
+				</carousel-item>
+				<carousel-item>
+					<img src="images/flash2.jpg" />
+				</carousel-item>
+				<carousel-item>
+					<img src="images/flash3.jpg" />
+				</carousel-item>
+				<carousel-item>
+					<img src="images/flash4.jpg" />
+				</carousel-item>
+			</carousel>
+			
+			<script type="text/template" id="carousel-template">
+				<div class="carousel">
+					<div class="carousel-box">
+						<ul class="carousel-box-ul" :style="{marginLeft:'-'+left+'px'}"><slot></slot></ul>
+						<ul class="carousel-item-count"><li @click="activeCountFunc(item)" :class="{active:activeClass==item}" v-for="item in items" v-text="item"></li></ul>
+						<p class="carousel-item-click">
+							<a class="carousel-item-click-left" @click="leftMoveFunc"><<</a>
+							<a class="carousel-item-click-right" @click="rightMoveFunc">>></a>
+						</p>
+					</div>
+				</div>
+			</script>
+			<script type="text/template" id="carousel-item-template">
+				<li><slot></slot></li>
+			</script>
+		</div>
+
+		<script src="js/vue.min.js"></script>
+		<script>
+			new Vue({
+				el:"#app",
+				components:{
+					"carousel":{
+						template:"#carousel-template",
+						data:function(){
+							return {
+								left:0,
+								items:0,
+								time:null,
+								activeClass:1,
+								innerWidth
+							}
+						},
+						props:["width"],
+						mounted:function(){
+							this.innerWidth=this.width?parseInt(this.width):window.document.body.clientWidth;
+							this.autoPlay();
+						},
+						methods:{
+							autoPlay:function(){
+								var _this=this;
+								_this.time=setInterval(function(){
+									if((_this.items-1)*_this.innerWidth==_this.left){
+										_this.left=0;
+									}else{
+										_this.left+=_this.innerWidth;
+									}
+									_this.activeFunc();
+								},5000);
+							},
+							activeFunc:function(){
+								this.activeClass=this.left/this.innerWidth+1
+							},
+							activeCountFunc:function(index){
+								clearInterval(this.time);
+								this.left=(index-1)*this.innerWidth;
+								this.activeFunc();
+								this.autoPlay();
+							},
+							leftMoveFunc:function(){
+								clearInterval(this.time);
+								this.left=(this.left/this.innerWidth)<=0?(this.items-1)*this.innerWidth:(this.left-this.innerWidth);
+								this.activeFunc();
+								this.autoPlay();
+							},
+							rightMoveFunc:function(){
+								clearInterval(this.time);
+								this.left=(this.left/this.innerWidth)>=(this.items-1)?0:(this.left+this.innerWidth);
+								this.activeFunc();
+								this.autoPlay();
+							}
+
+						}
+					},
+					"carouselItem":{
+						template:"#carousel-item-template",
+						created:function(){
+							this.$parent.items++;
+						}
+					}
+					
+				}
+			})
+		</script>
+		
+	</body>
+</html>
